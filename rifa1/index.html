@@ -266,9 +266,6 @@
     </div>
 
     <script>
-      // ==========================================================================
-      // PEGA AQUÍ TU ENLACE DE GOOGLE CONFIGURADO EN MODO "NUEVA IMPLEMENTACIÓN"
-      // ==========================================================================
       const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzdfV4SiVyiJo_jcq-O2qaaos4XQq_mAPnf6BPU6h8ITSXE3fQl83FQxXZ7SNl1YRiY/exec";
 
       // Ejecución inicial automática
@@ -288,13 +285,13 @@
           btn.id = "btn-" + i;
           btn.className = "numero-casilla libre";
           btn.innerText = strNum;
-          btn.disabled = true; // Se habilitan una vez cargue el servidor
+          btn.disabled = true; 
           btn.onclick = function() { seleccionarNumero(i, strNum); };
           grid.appendChild(btn);
         }
       }
 
-      // Obtiene de forma asíncrona los títulos, precio y fecha desde la pestaña MENU
+      // Obtiene títulos, precio y fecha desde la pestaña MENU
       function actualizarTextosMenu() {
         fetch(`${URL_WEB_APP}?accion=obtener_menu`)
           .then(res => res.json())
@@ -315,7 +312,7 @@
         document.getElementById("loader").style.display = "block";
         document.getElementById("loader").innerText = "Sincronizando estado de números...";
 
-        fetch(`${URL_WEB_APP}?accion=obtener_board` === "" ? `${URL_WEB_APP}?accion=obtener_tablero` : `${URL_WEB_APP}?accion=obtener_tablero`)
+        fetch(`${URL_WEB_APP}?accion=obtener_tablero`)
           .then(res => res.json())
           .then(estadoNumeros => {
             for (let i = 0; i <= 99; i++) {
@@ -340,31 +337,26 @@
 
       // Gestiona el clic visual sobre las casillas libres
       function seleccionarNumero(id, strNum) {
-        // Remover selección previa
         let actualSeleccionado = document.querySelector(".seleccionado");
         if (actualSeleccionado) {
           actualSeleccionado.classList.remove("seleccionado");
         }
 
-        // Aplicar selección nueva
         let btn = document.getElementById("btn-" + id);
         btn.classList.add("seleccionado");
 
-        // Volcar datos al formulario
         document.getElementById("numSeleccionado").value = id;
         document.getElementById("numVisual").value = "Número #" + strNum;
       }
 
-      // Envía los datos del formulario de compra mediante una petición POST a Google
+      // Envía los datos mediante método GET optimizado para evitar bloqueos CORS
       function registrarNumeroDesdeWeb() {
-        let data = {
-          num1: document.getElementById("numSeleccionado").value,
-          nombre: document.getElementById("nombre").value,
-          telefono: document.getElementById("telefono").value,
-          correo: document.getElementById("correo").value
-        };
+        let numSeleccionado = document.getElementById("numSeleccionado").value;
+        let nombre = document.getElementById("nombre").value;
+        let telefono = document.getElementById("telefono").value;
+        let correo = document.getElementById("correo").value;
 
-        if (data.num1 === "" || parseInt(data.num1, 10) < 0 || parseInt(data.num1, 10) > 99 || !data.nombre.trim() || !data.telefono.trim()) {
+        if (numSeleccionado === "" || parseInt(numSeleccionado, 10) < 0 || parseInt(numSeleccionado, 10) > 99 || !nombre.trim() || !telefono.trim()) {
           alert("Por favor selecciona un número libre en el tablero y completa los campos de Nombre y Teléfono.");
           return;
         }
@@ -372,29 +364,33 @@
         document.getElementById("loader").style.display = "block";
         document.getElementById("loader").innerText = "Procesando registro en el servidor de Google...";
 
-        fetch(URL_WEB_APP, {
-          method: "POST",
-          mode: "no-cors", // Requerido para evitar restricciones de redirección externa de Google
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
-        })
-        .then(() => {
-          alert("¡Solicitud Enviada!\nTu número está registrándose. El tablero se actualizará automáticamente en 3 segundos.");
-          
-          // Limpiar campos
-          document.getElementById("numSeleccionado").value = "";
-          document.getElementById("numVisual").value = "";
-          document.getElementById("nombre").value = "";
-          document.getElementById("telefono").value = "";
-          document.getElementById("correo").value = "";
-          
-          setTimeout(() => { actualizarTableroReal(); }, 3000);
-        })
-        .catch(err => {
-          alert("Ocurrió un error en la comunicación de red.");
-          console.error(err);
-          document.getElementById("loader").style.display = "none";
-        });
+        // Parámetros seguros estructurados en la URL
+        const urlFinal = `${URL_WEB_APP}?accion=registrar_ticket&num1=${encodeURIComponent(numSeleccionado)}&nombre=${encodeURIComponent(nombre)}&telefono=${encodeURIComponent(telefono)}&correo=${encodeURIComponent(correo)}`;
+
+        fetch(urlFinal)
+          .then(res => res.json())
+          .then(respuesta => {
+            if (respuesta.status === "ok") {
+              alert("¡Registro Exitoso!\nTu número ha sido reservado correctamente.");
+              
+              // Limpiar campos del formulario
+              document.getElementById("numSeleccionado").value = "";
+              document.getElementById("numVisual").value = "";
+              document.getElementById("nombre").value = "";
+              document.getElementById("telefono").value = "";
+              document.getElementById("correo").value = "";
+            } else if (respuesta.status === "error") {
+              alert(respuesta.message);
+            } else if (respuesta.status === "ocupado") {
+              alert("Error:\nEl número ya fue tomado por otro usuario.");
+            }
+            actualizarTableroReal();
+          })
+          .catch(err => {
+            alert("Ocurrió un inconveniente al procesar la reserva.");
+            console.error(err);
+            document.getElementById("loader").style.display = "none";
+          });
       }
     </script>
   </body>
