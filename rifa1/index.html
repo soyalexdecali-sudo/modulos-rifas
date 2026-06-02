@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rifa Interactiva Premium</title>
+    <style>
+      body { 
+        font-family: 'Arial Black', Gadget, sans-serif; 
+        margin: 0; 
+        padding: 20px; 
+        background: linear-gradient(rgba(10, 16, 12, 0.85), rgba(5, 8, 6, 0.95)), 
+                    url('https://images.unsplash.com/photo-1606836591695-4d58a73ef1e5?q=80&w=1470&auto=format&fit=crop') no-repeat center center fixed;
+        background-size: cover;
+        color: #fff;
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 20px; 
+        justify-content: center; 
+      }
+      
+      .contenedor-tablero { 
+        background: rgba(13, 20, 15, 0.90); 
+        border: 3px solid #d4af37; 
+        border-radius: 15px; 
+        padding: 20px; 
+        width: 100%; 
+        max-width: 620px; 
+        box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
+        box-sizing: border-box;
+      }
+      
+      .encabezado { 
+        text-align: center; 
+        margin-bottom: 20px; 
+        border-bottom: 2px dashed #d4af37; 
+        padding-bottom: 15px; 
+      }
+      
+      .encabezado h1 { 
+        font-size: 28px; 
+        color: #f3ca52; 
+        margin: 0 0 5px 0; 
+        text-shadow: 2px 2px 4px #000;
+        letter-spacing: 1px;
+      }
+      
+      .encabezado p { 
+        font-size: 13px; 
+        color: #a3b899; 
+        margin: 5px 0; 
+        font-family: Arial, sans-serif; 
+        font-weight: bold;
+      }
+      
+      .info-rifa {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 10px;
+        background: rgba(0,0,0,0.4);
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+      }
+
+      .info-item {
+        font-size: 12px;
+        color: #fff;
+        font-family: Arial, sans-serif;
+      }
+
+      .info-item span {
+        color: #f3ca52;
+        font-weight: bold;
+      }
+
+      .tablero-grid { 
+        display: grid; 
+        grid-template-columns: repeat(10, 1fr); 
+        gap: 6px; 
+      }
+      
+      .numero-casilla { 
+        aspect-ratio: 1; 
+        border: 2px solid #555; 
+        border-radius: 6px; 
+        font-size: 16px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        transition: all 0.2s; 
+        font-family: 'Impact', Gadget, sans-serif;
+        user-select: none;
+      }
+      
+      .libre { 
+        background: linear-gradient(135deg, #1e293b, #0f172a); 
+        color: #38bdf8; 
+        border-color: #38bdf8; 
+      }
+      .libre:hover { 
+        background: #38bdf8; 
+        color: #000; 
+        transform: scale(1.1); 
+        box-shadow: 0 0 10px #38bdf8;
+      }
+      
+      .seleccionado { 
+        background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
+        color: #000 !important; 
+        border-color: #fff !important; 
+        animation: pulso 1s infinite alternate;
+      }
+      
+      .ocupado { 
+        background: linear-gradient(135deg, #991b1b, #7f1d1d) !important; 
+        color: #64748b !important; 
+        border-color: #451a03 !important; 
+        cursor: not-allowed; 
+        opacity: 0.6;
+      }
+      
+      .contenedor-formulario { 
+        background: rgba(15, 23, 42, 0.95); 
+        border: 3px solid #38bdf8; 
+        border-radius: 15px; 
+        padding: 25px; 
+        width: 100%; 
+        max-width: 380px; 
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
+        box-sizing: border-box;
+        align-self: flex-start;
+      }
+      
+      .contenedor-formulario h2 { 
+        text-align: center; 
+        color: #38bdf8; 
+        margin-top: 0; 
+        font-size: 20px; 
+        border-bottom: 2px dashed #38bdf8; 
+        padding-bottom: 10px;
+      }
+      
+      .campo-grupo { 
+        margin-bottom: 15px; 
+      }
+      
+      .campo-grupo label { 
+        display: block; 
+        margin-bottom: 5px; 
+        font-size: 12px; 
+        color: #94a3b8; 
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+      }
+      
+      .campo-grupo input { 
+        width: 100%; 
+        padding: 10px; 
+        border: 2px solid #334155; 
+        border-radius: 8px; 
+        background: #0f172a; 
+        color: #fff; 
+        font-size: 14px; 
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+      .campo-grupo input:focus { 
+        border-color: #38bdf8; 
+        outline: none; 
+      }
+      
+      .btn-enviar { 
+        width: 100%; 
+        padding: 12px; 
+        background: linear-gradient(to right, #38bdf8, #0284c7); 
+        border: none; 
+        border-radius: 8px; 
+        color: #000; 
+        font-size: 16px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        font-family: 'Arial Black', sans-serif;
+        transition: all 0.3s;
+        margin-top: 10px;
+      }
+      .btn-enviar:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4); 
+      }
+      
+      #loader { 
+        display: block; 
+        text-align: center; 
+        color: #f59e0b; 
+        font-size: 14px; 
+        margin: 15px 0; 
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+        animation: parpadeo 1.5s infinite;
+      }
+      
+      @keyframes pulso { 
+        from { transform: scale(1); } to { transform: scale(1.08); } 
+      }
+      @keyframes parpadeo { 
+        50% { opacity: 0.3; } 
+      }
+
+      @media (max-width: 600px) {
+        body { padding: 10px; gap: 15px; }
+        .encabezado h1 { font-size: 22px; }
+        .tablero-grid { gap: 4px; }
+        .numero-casilla { font-size: 13px; }
+        .contenedor-formulario { max-width: 100%; }
+        .info-rifa { flex-direction: column; gap: 5px; text-align: center; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="contenedor-tablero">
+      <div class="encabezado">
+        <h1 id="tituloPrincipal">CARGANDO...</h1>
+        <p id="subtitulo">Consultando parámetros del servidor...</p>
+        
+        <div class="info-rifa">
+          <div class="info-item">VALOR: <span id="txtPrecio">...</span></div>
+          <div class="info-item">SORTEO: <span id="txtFecha">...</span></div>
+        </div>
+      </div>
+      
+      <div id="loader">Conectando con la base de datos de la Rifa...</div>
+      
+      <div class="tablero-grid" id="gridTablero">
+        </div>
+    </div>
+
+    <div class="contenedor-formulario">
+      <h2>RESERVAR BOLETO</h2>
+      
+      <div class="campo-grupo">
+        <label for="numVisual">Número Seleccionado:</label>
+        <input type="text" id="numVisual" readonly placeholder="Toca un número en el tablero" style="color:#f59e0b; font-weight:bold; font-size:16px; text-align:center; border-color:#f59e0b;">
+        <input type="hidden" id="numSeleccionado">
+      </div>
+      
+      <div class="campo-grupo">
+        <label for="nombre">Nombre Completo:</label>
+        <input type="text" id="nombre" placeholder="Ej. Juan Pérez">
+      </div>
+      
+      <div class="campo-grupo">
+        <label for="telefono">Teléfono / WhatsApp:</label>
+        <input type="tel" id="telefono" placeholder="Ej. 3001234567">
+      </div>
+      
+      <div class="campo-grupo">
+        <label for="correo">Correo Electrónico (Opcional):</label>
+        <input type="email" id="correo" placeholder="ejemplo@correo.com">
+      </div>
+      
+      <button class="btn-enviar" onclick="registrarNumeroDesdeWeb()">CONFIRMAR RESERVA</button>
+    </div>
+
+    <script>
+      // ==========================================================================
+      // PEGA AQUÍ TU ENLACE DE GOOGLE CONFIGURADO EN MODO "NUEVA IMPLEMENTACIÓN"
+      // ==========================================================================
+      const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzdfV4SiVyiJo_jcq-O2qaaos4XQq_mAPnf6BPU6h8ITSXE3fQl83FQxXZ7SNl1YRiY/exec";
+
+      // Ejecución inicial automática
+      window.onload = function() {
+        generarTableroVacio();
+        actualizarTextosMenu();
+        actualizarTableroReal();
+      };
+
+      // Dibuja la cuadrícula del 00 al 99 en gris antes de recibir los datos reales
+      function generarTableroVacio() {
+        const grid = document.getElementById("gridTablero");
+        grid.innerHTML = ""; 
+        for (let i = 0; i <= 99; i++) {
+          let strNum = i < 10 ? "0" + i : "" + i;
+          let btn = document.createElement("button");
+          btn.id = "btn-" + i;
+          btn.className = "numero-casilla libre";
+          btn.innerText = strNum;
+          btn.disabled = true; // Se habilitan una vez cargue el servidor
+          btn.onclick = function() { seleccionarNumero(i, strNum); };
+          grid.appendChild(btn);
+        }
+      }
+
+      // Obtiene de forma asíncrona los títulos, precio y fecha desde la pestaña MENU
+      function actualizarTextosMenu() {
+        fetch(`${URL_WEB_APP}?accion=obtener_menu`)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("tituloPrincipal").innerHTML = data.primerRenglon || "GRAN RIFA";
+            document.getElementById("subtitulo").innerHTML = data.restoTexto || "SEPARA TU NÚMERO";
+            document.getElementById("txtPrecio").innerText = data.precio || "---";
+            document.getElementById("txtFecha").innerText = data.fecha || "---";
+          })
+          .catch(err => {
+            console.error("Error al obtener textos:", err);
+            document.getElementById("tituloPrincipal").innerText = "RIFA DISPONIBLE";
+          });
+      }
+
+      // Consulta qué números están libres y cuáles ocupados en tiempo real
+      function actualizarTableroReal() {
+        document.getElementById("loader").style.display = "block";
+        document.getElementById("loader").innerText = "Sincronizando estado de números...";
+
+        fetch(`${URL_WEB_APP}?accion=obtener_board` === "" ? `${URL_WEB_APP}?accion=obtener_tablero` : `${URL_WEB_APP}?accion=obtener_tablero`)
+          .then(res => res.json())
+          .then(estadoNumeros => {
+            for (let i = 0; i <= 99; i++) {
+              let btn = document.getElementById("btn-" + i);
+              if (!btn) continue;
+
+              if (estadoNumeros[i] === true) {
+                btn.className = "numero-casilla ocupado";
+                btn.disabled = true;
+              } else {
+                btn.className = "numero-casilla libre";
+                btn.disabled = false;
+              }
+            }
+            document.getElementById("loader").style.display = "none";
+          })
+          .catch(err => {
+            console.error("Error al mapear tablero:", err);
+            document.getElementById("loader").innerText = "⚠️ Error de sincronización. Reintente.";
+          });
+      }
+
+      // Gestiona el clic visual sobre las casillas libres
+      function seleccionarNumero(id, strNum) {
+        // Remover selección previa
+        let actualSeleccionado = document.querySelector(".seleccionado");
+        if (actualSeleccionado) {
+          actualSeleccionado.classList.remove("seleccionado");
+        }
+
+        // Aplicar selección nueva
+        let btn = document.getElementById("btn-" + id);
+        btn.classList.add("seleccionado");
+
+        // Volcar datos al formulario
+        document.getElementById("numSeleccionado").value = id;
+        document.getElementById("numVisual").value = "Número #" + strNum;
+      }
+
+      // Envía los datos del formulario de compra mediante una petición POST a Google
+      function registrarNumeroDesdeWeb() {
+        let data = {
+          num1: document.getElementById("numSeleccionado").value,
+          nombre: document.getElementById("nombre").value,
+          telefono: document.getElementById("telefono").value,
+          correo: document.getElementById("correo").value
+        };
+
+        if (data.num1 === "" || parseInt(data.num1, 10) < 0 || parseInt(data.num1, 10) > 99 || !data.nombre.trim() || !data.telefono.trim()) {
+          alert("Por favor selecciona un número libre en el tablero y completa los campos de Nombre y Teléfono.");
+          return;
+        }
+
+        document.getElementById("loader").style.display = "block";
+        document.getElementById("loader").innerText = "Procesando registro en el servidor de Google...";
+
+        fetch(URL_WEB_APP, {
+          method: "POST",
+          mode: "no-cors", // Requerido para evitar restricciones de redirección externa de Google
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        })
+        .then(() => {
+          alert("¡Solicitud Enviada!\nTu número está registrándose. El tablero se actualizará automáticamente en 3 segundos.");
+          
+          // Limpiar campos
+          document.getElementById("numSeleccionado").value = "";
+          document.getElementById("numVisual").value = "";
+          document.getElementById("nombre").value = "";
+          document.getElementById("telefono").value = "";
+          document.getElementById("correo").value = "";
+          
+          setTimeout(() => { actualizarTableroReal(); }, 3000);
+        })
+        .catch(err => {
+          alert("Ocurrió un error en la comunicación de red.");
+          console.error(err);
+          document.getElementById("loader").style.display = "none";
+        });
+      }
+    </script>
+  </body>
+</html>
