@@ -6,7 +6,7 @@
     <title>Rifa Interactiva Premium</title>
     <style>
       body { 
-        font-family: 'Arial Black', Gadget, sans-serif; 
+        font-family: 'Arial Black', Gadget, sans-serif;
         margin: 0; 
         padding: 20px; 
         background: linear-gradient(rgba(10, 16, 12, 0.85), rgba(5, 8, 6, 0.95)), 
@@ -20,7 +20,7 @@
       }
       
       .contenedor-tablero { 
-        background: rgba(13, 20, 15, 0.90); 
+        background: rgba(13, 20, 15, 0.90);
         border: 3px solid #d4af37; 
         border-radius: 15px; 
         padding: 20px; 
@@ -28,17 +28,18 @@
         max-width: 620px; 
         box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
         box-sizing: border-box;
+        transition: background-color 0.4s ease, color 0.4s ease;
       }
       
       .encabezado { 
-        text-align: center; 
+        text-align: center;
         margin-bottom: 20px; 
         border-bottom: 2px dashed #d4af37; 
         padding-bottom: 15px; 
       }
       
       .encabezado h1 { 
-        font-size: 28px; 
+        font-size: 28px;
         color: #f3ca52; 
         margin: 0 0 5px 0; 
         text-shadow: 2px 2px 4px #000;
@@ -46,7 +47,7 @@
       }
       
       .encabezado p { 
-        font-size: 13px; 
+        font-size: 13px;
         color: #a3b899; 
         margin: 5px 0; 
         font-family: Arial, sans-serif; 
@@ -77,7 +78,7 @@
       .tablero-grid { 
         display: grid; 
         grid-template-columns: repeat(10, 1fr); 
-        gap: 6px; 
+        gap: 6px;
       }
       
       .numero-casilla { 
@@ -87,293 +88,277 @@
         font-size: 16px; 
         font-weight: bold; 
         cursor: pointer; 
-        display: flex; 
+        display: flex;
         align-items: center; 
         justify-content: center; 
         transition: all 0.2s; 
-        font-family: 'Impact', Gadget, sans-serif;
-        user-select: none;
+        font-family: 'Impact', Gadget, sans-serif; 
+        user-select: none; 
       }
       
       .libre { 
-        background: linear-gradient(135deg, #1e293b, #0f172a); 
+        background: linear-gradient(135deg, #1e293b, #0f172a);
         color: #38bdf8; 
         border-color: #38bdf8; 
       }
+      
       .libre:hover { 
         background: #38bdf8; 
         color: #000; 
         transform: scale(1.1); 
-        box-shadow: 0 0 10px #38bdf8;
-      }
-      
-      .seleccionado { 
-        background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
-        color: #000 !important; 
-        border-color: #fff !important; 
-        animation: pulso 1s infinite alternate;
+        box-shadow: 0 0 10px #38bdf8; 
       }
       
       .ocupado { 
-        background: linear-gradient(135deg, #991b1b, #7f1d1d) !important; 
-        color: #64748b !important; 
-        border-color: #451a03 !important; 
+        background: #b91c1c; 
+        color: #fff; 
+        border-color: #b91c1c; 
         cursor: not-allowed; 
-        opacity: 0.6;
+        opacity: 0.7; 
+      }
+      
+      .seleccionado { 
+        background: #d4af37 !important; 
+        color: #000 !important; 
+        border-color: #fff !important; 
+        transform: scale(1.05); 
+        box-shadow: 0 0 12px #d4af37; 
       }
       
       .contenedor-formulario { 
-        background: rgba(15, 23, 42, 0.95); 
-        border: 3px solid #38bdf8; 
+        background: rgba(10, 15, 11, 0.95);
+        border: 3px solid #d4af37; 
         border-radius: 15px; 
-        padding: 25px; 
+        padding: 20px; 
         width: 100%; 
-        max-width: 380px; 
-        box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
+        max-width: 400px; 
+        box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
         box-sizing: border-box;
-        align-self: flex-start;
+        height: fit-content;
+        transition: background-color 0.4s ease, color 0.4s ease;
       }
       
-      .contenedor-formulario h2 { 
+      .formulario-titulo { 
+        font-family: 'Impact', Gadget, sans-serif;
+        color: #d4af37; 
+        font-size: 22px; 
         text-align: center; 
-        color: #38bdf8; 
         margin-top: 0; 
-        font-size: 20px; 
-        border-bottom: 2px dashed #38bdf8; 
-        padding-bottom: 10px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #d4af37;
+        padding-bottom: 5px;
       }
       
-      .campo-grupo { 
-        margin-bottom: 15px; 
+      .grupo-campo { 
+        margin-bottom: 12px; 
       }
       
-      .campo-grupo label { 
+      .grupo-campo label { 
         display: block; 
-        margin-bottom: 5px; 
         font-size: 12px; 
-        color: #94a3b8; 
+        color: #ccc; 
+        margin-bottom: 4px;
         font-family: Arial, sans-serif;
         font-weight: bold;
       }
       
-      .campo-grupo input { 
+      .grupo-campo input { 
         width: 100%; 
         padding: 10px; 
-        border: 2px solid #334155; 
-        border-radius: 8px; 
-        background: #0f172a; 
+        border: 1px solid #444; 
+        border-radius: 6px; 
+        background: #000; 
         color: #fff; 
+        box-sizing: border-box; 
         font-size: 14px; 
-        box-sizing: border-box;
         font-family: Arial, sans-serif;
       }
-      .campo-grupo input:focus { 
-        border-color: #38bdf8; 
+      
+      .grupo-campo input:focus { 
+        border-color: #d4af37; 
         outline: none; 
       }
       
       .btn-enviar { 
         width: 100%; 
         padding: 12px; 
-        background: linear-gradient(to right, #38bdf8, #0284c7); 
-        border: none; 
-        border-radius: 8px; 
+        background: #d4af37; 
         color: #000; 
+        border: none; 
+        border-radius: 6px; 
         font-size: 16px; 
         font-weight: bold; 
         cursor: pointer; 
-        font-family: 'Arial Black', sans-serif;
-        transition: all 0.3s;
         margin-top: 10px;
+        transition: background 0.2s;
       }
+      
       .btn-enviar:hover { 
-        transform: translateY(-2px); 
-        box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4); 
+        background: #f3ca52; 
       }
       
-      #loader { 
-        display: block; 
-        text-align: center; 
-        color: #f59e0b; 
-        font-size: 14px; 
-        margin: 15px 0; 
+      #loader {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        font-size: 20px;
+        color: #d4af37;
         font-family: Arial, sans-serif;
-        font-weight: bold;
-        animation: parpadeo 1.5s infinite;
       }
       
-      @keyframes pulso { 
-        from { transform: scale(1); } to { transform: scale(1.08); } 
-      }
-      @keyframes parpadeo { 
-        50% { opacity: 0.3; } 
-      }
-
-      @media (max-width: 600px) {
+      @media(max-width: 768px) {
         body { padding: 10px; gap: 15px; }
-        .encabezado h1 { font-size: 22px; }
         .tablero-grid { gap: 4px; }
-        .numero-casilla { font-size: 13px; }
-        .contenedor-formulario { max-width: 100%; }
-        .info-rifa { flex-direction: column; gap: 5px; text-align: center; }
+        .numero-casilla { font-size: 14px; }
+        .encabezado h1 { font-size: 22px; }
       }
     </style>
   </head>
   <body>
+    
+    <div id="loader">Cargando Tablero Oficial...</div>
 
-    <div class="contenedor-tablero">
+    <div class="contenedor-tablero" id="panelTablero">
       <div class="encabezado">
-        <h1 id="tituloPrincipal">CARGANDO...</h1>
-        <p id="subtitulo">Consultando parámetros del servidor...</p>
+        <h1 id="txtTitulo">Cargando...</h1>
+        <p id="txtDescripcion">Por favor espera un momento...</p>
         
         <div class="info-rifa">
-          <div class="info-item">VALOR: <span id="txtPrecio">...</span></div>
-          <div class="info-item">SORTEO: <span id="txtFecha">...</span></div>
+          <div class="info-item">Fecha: <span id="lblFecha">--/--/----</span></div>
+          <div class="info-item">Valor: <span id="lblPrecio">$0</span></div>
         </div>
       </div>
       
-      <div id="loader">Conectando con la base de datos de la Rifa...</div>
-      
-      <div class="tablero-grid" id="gridTablero">
-        </div>
+      <div class="tablero-grid" id="gridNumeros"></div>
     </div>
 
-    <div class="contenedor-formulario">
-      <h2>RESERVAR BOLETO</h2>
-      
-      <div class="campo-grupo">
-        <label for="numVisual">Número Seleccionado:</label>
-        <input type="text" id="numVisual" readonly placeholder="Toca un número en el tablero" style="color:#f59e0b; font-weight:bold; font-size:16px; text-align:center; border-color:#f59e0b;">
-        <input type="hidden" id="numSeleccionado">
-      </div>
-      
-      <div class="campo-grupo">
-        <label for="nombre">Nombre Completo:</label>
-        <input type="text" id="nombre" placeholder="Ej. Juan Pérez">
-      </div>
-      
-      <div class="campo-grupo">
-        <label for="telefono">Teléfono / WhatsApp:</label>
-        <input type="tel" id="telefono" placeholder="Ej. 3001234567">
-      </div>
-      
-      <div class="campo-grupo">
-        <label for="correo">Correo Electrónico (Opcional):</label>
-        <input type="email" id="correo" placeholder="ejemplo@correo.com">
-      </div>
-      
-      <button class="btn-enviar" onclick="registrarNumeroDesdeWeb()">CONFIRMAR RESERVA</button>
+    <div class="contenedor-formulario" id="panelFormulario">
+      <div class="formulario-titulo">RESERVAR NÚMERO</div>
+      <form id="formularioTicket" onsubmit="procesarFormulario(event)">
+        <div class="grupo-campo">
+          <label>Número Seleccionado</label>
+          <input type="text" id="numVisual" readonly placeholder="Ninguno" style="color:#f3ca52; font-weight:bold; text-align:center; background:#111; font-size:16px;">
+          <input type="hidden" id="numSeleccionado">
+        </div>
+        <div class="grupo-campo">
+          <label>Nombre Completo</label>
+          <input type="text" id="nombre" required placeholder="Ej: Juan Pérez">
+        </div>
+        <div class="grupo-campo">
+          <label>Teléfono Celular</label>
+          <input type="text" id="telefono" required placeholder="Ej: 3157778899">
+        </div>
+        <div class="grupo-campo">
+          <label>Correo Electrónico</label>
+          <input type="email" id="correo" required placeholder="Ej: juan@gmail.com">
+        </div>
+        
+        <button type="submit" class="btn-enviar">RESERVAR AHORA</button>
+      </form>
     </div>
 
     <script>
-      const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzdfV4SiVyiJo_jcq-O2qaaos4XQq_mAPnf6BPU6h8ITSXE3fQl83FQxXZ7SNl1YRiY/exec";
+      const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzdfV4SiVyiJo_jcq-O2qaaos4XQq_mAPnf6BPU6h8ITSXE3fQl83FQxXZ7SNl1YRiY/exec"; 
+      let numeroElegidoActualmente = null;
 
-      // Ejecución inicial automática
-      window.onload = function() {
-        generarTableroVacio();
-        actualizarTextosMenu();
+      window.addEventListener("DOMContentLoaded", () => {
         actualizarTableroReal();
-      };
+      });
 
-      // Dibuja la cuadrícula del 00 al 99 en gris antes de recibir los datos reales
-      function generarTableroVacio() {
-        const grid = document.getElementById("gridTablero");
-        grid.innerHTML = ""; 
-        for (let i = 0; i <= 99; i++) {
-          let strNum = i < 10 ? "0" + i : "" + i;
-          let btn = document.createElement("button");
-          btn.id = "btn-" + i;
-          btn.className = "numero-casilla libre";
-          btn.innerText = strNum;
-          btn.disabled = true; 
-          btn.onclick = function() { seleccionarNumero(i, strNum); };
-          grid.appendChild(btn);
-        }
-      }
-
-      // Obtiene títulos, precio y fecha desde la pestaña MENU
-      function actualizarTextosMenu() {
+      function actualizarTableroReal() {
+        document.getElementById("loader").style.display = "flex";
+        
+        // 1. OBTENER CONFIGURACIONES DE TEXTOS Y COLORES SINCRO DESDE EL SHEET
         fetch(`${URL_WEB_APP}?accion=obtener_menu`)
           .then(res => res.json())
-          .then(data => {
-            document.getElementById("tituloPrincipal").innerHTML = data.primerRenglon || "GRAN RIFA";
-            document.getElementById("subtitulo").innerHTML = data.restoTexto || "SEPARA TU NÚMERO";
-            document.getElementById("txtPrecio").innerText = data.precio || "---";
-            document.getElementById("txtFecha").innerText = data.fecha || "---";
+          .then(menu => {
+            document.getElementById("txtTitulo").innerText = menu.primerRenglon;
+            document.getElementById("txtDescripcion").innerText = menu.restoTexto;
+            document.getElementById("lblFecha").innerText = menu.fecha;
+            document.getElementById("lblPrecio").innerText = (typeof menu.precio === 'number') ? `$${menu.precio.toLocaleString('es-CO')}` : `$${menu.precio}`;
+            
+            // ASIGNACIÓN DINÁMICA DE LOS ESTILOS DE COLOR (MAPEADOS A LAS NUEVAS CELDAS)
+            if (menu.fondoFormulario) {
+              document.getElementById("panelTablero").style.backgroundColor = menu.fondoFormulario;
+              document.getElementById("panelFormulario").style.backgroundColor = menu.fondoFormulario;
+            }
+            if (menu.colorFuentes) {
+              document.getElementById("panelTablero").style.color = menu.colorFuentes;
+              document.getElementById("panelFormulario").style.color = menu.colorFuentes;
+              
+              document.querySelectorAll(".info-item").forEach(el => el.style.color = menu.colorFuentes);
+              document.querySelectorAll(".grupo-campo label").forEach(el => el.style.color = menu.colorFuentes);
+            }
+
+            // 2. CONSTRUIR MAPA DE NÚMEROS
+            return fetch(`${URL_WEB_APP}?accion=obtener_tablero`);
           })
-          .catch(err => {
-            console.error("Error al obtener textos:", err);
-            document.getElementById("tituloPrincipal").innerText = "RIFA DISPONIBLE";
-          });
-      }
-
-      // Consulta qué números están libres y cuáles ocupados en tiempo real
-      function actualizarTableroReal() {
-        document.getElementById("loader").style.display = "block";
-        document.getElementById("loader").innerText = "Sincronizando estado de números...";
-
-        fetch(`${URL_WEB_APP}?accion=obtener_tablero`)
           .then(res => res.json())
-          .then(estadoNumeros => {
-            for (let i = 0; i <= 99; i++) {
-              let btn = document.getElementById("btn-" + i);
-              if (!btn) continue;
+          .then(tablero => {
+            const contenedorGrid = document.getElementById("gridNumeros");
+            contenedorGrid.innerHTML = "";
+            numeroElegidoActualmente = null;
 
-              if (estadoNumeros[i] === true) {
-                btn.className = "numero-casilla ocupado";
-                btn.disabled = true;
+            for (let n = 0; n <= 99; n++) {
+              const divCasilla = document.createElement("div");
+              divCasilla.classList.add("numero-casilla");
+              divCasilla.innerText = String(n).padStart(2, "0");
+
+              const estaOcupado = tablero[n] === true;
+
+              if (estaOcupado) {
+                divCasilla.classList.add("ocupado");
               } else {
-                btn.className = "numero-casilla libre";
-                btn.disabled = false;
+                divCasilla.classList.add("libre");
+                divCasilla.addEventListener("click", () => {
+                  seleccionarNumeroCasilla(n, divCasilla);
+                });
               }
+              contenedorGrid.appendChild(divCasilla);
             }
             document.getElementById("loader").style.display = "none";
           })
           .catch(err => {
-            console.error("Error al mapear tablero:", err);
-            document.getElementById("loader").innerText = "⚠️ Error de sincronización. Reintente.";
+            console.error("Error cargando el tablero:", err);
+            document.getElementById("loader").style.display = "none";
           });
       }
 
-      // Gestiona el clic visual sobre las casillas libres
-      function seleccionarNumero(id, strNum) {
-        let actualSeleccionado = document.querySelector(".seleccionado");
-        if (actualSeleccionado) {
-          actualSeleccionado.classList.remove("seleccionado");
-        }
-
-        let btn = document.getElementById("btn-" + id);
-        btn.classList.add("seleccionado");
-
-        document.getElementById("numSeleccionado").value = id;
-        document.getElementById("numVisual").value = "Número #" + strNum;
+      function seleccionarNumeroCasilla(numero, elementoHtml) {
+        document.querySelectorAll(".numero-casilla").forEach(c => c.classList.remove("seleccionado"));
+        elementoHtml.classList.add("seleccionado");
+        
+        numeroElegidoActualmente = numero;
+        document.getElementById("numSeleccionado").value = numero;
+        document.getElementById("numVisual").value = `Número: ${String(numero).padStart(2, "0")}`;
       }
 
-      // Envía los datos mediante método GET optimizado para evitar bloqueos CORS
-      function registrarNumeroDesdeWeb() {
-        let numSeleccionado = document.getElementById("numSeleccionado").value;
-        let nombre = document.getElementById("nombre").value;
-        let telefono = document.getElementById("telefono").value;
-        let correo = document.getElementById("correo").value;
+      function procesarFormulario(e) {
+        e.preventDefault();
 
-        if (numSeleccionado === "" || parseInt(numSeleccionado, 10) < 0 || parseInt(numSeleccionado, 10) > 99 || !nombre.trim() || !telefono.trim()) {
-          alert("Por favor selecciona un número libre en el tablero y completa los campos de Nombre y Teléfono.");
+        if (numeroElegidoActualmente === null) {
+          alert("Por favor, selecciona primero un número libre del tablero.");
           return;
         }
 
-        document.getElementById("loader").style.display = "block";
+        const nombre = document.getElementById("nombre").value.trim();
+        const telefono = document.getElementById("telefono").value.trim();
+        const correo = document.getElementById("correo").value.trim();
+
+        document.getElementById("loader").style.display = "flex";
         document.getElementById("loader").innerText = "Procesando registro en el servidor de Google...";
 
-        // Parámetros seguros estructurados en la URL
-        const urlFinal = `${URL_WEB_APP}?accion=registrar_ticket&num1=${encodeURIComponent(numSeleccionado)}&nombre=${encodeURIComponent(nombre)}&telefono=${encodeURIComponent(telefono)}&correo=${encodeURIComponent(correo)}`;
+        const urlFinal = `${URL_WEB_APP}?accion=registrar_ticket&num1=${encodeURIComponent(numeroElegidoActualmente)}&nombre=${encodeURIComponent(nombre)}&telefono=${encodeURIComponent(telefono)}&correo=${encodeURIComponent(correo)}`;
 
         fetch(urlFinal)
           .then(res => res.json())
           .then(respuesta => {
             if (respuesta.status === "ok") {
               alert("¡Registro Exitoso!\nTu número ha sido reservado correctamente.");
-              
-              // Limpiar campos del formulario
               document.getElementById("numSeleccionado").value = "";
               document.getElementById("numVisual").value = "";
               document.getElementById("nombre").value = "";
