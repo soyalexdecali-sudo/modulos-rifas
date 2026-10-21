@@ -246,6 +246,55 @@
         .numero-casilla { font-size: 14px; }
         .encabezado h1 { font-size: 22px; }
       }
+
+      /* ── WOMPI ─────────────────────────────────────────────────────────── */
+      .panel-wompi {
+        display: none;
+        margin-top: 16px;
+        padding: 14px;
+        background: rgba(0, 80, 30, 0.30);
+        border: 1px solid #22c55e;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .panel-wompi p {
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        color: #86efac;
+        margin: 0 0 10px 0;
+        line-height: 1.5;
+      }
+      .btn-wompi {
+        width: 100%;
+        padding: 13px;
+        background: linear-gradient(135deg, #1d4e2a, #145a28);
+        color: #fff;
+        border: 2px solid #22c55e;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: 'Arial Black', Gadget, sans-serif;
+        letter-spacing: 0.5px;
+        transition: background 0.2s, transform 0.1s;
+      }
+      .btn-wompi:hover  { background: linear-gradient(135deg, #166534, #1d4e2a); }
+      .btn-wompi:active { transform: scale(0.98); }
+      .btn-cancelar-wompi {
+        width: 100%;
+        margin-top: 8px;
+        padding: 8px;
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid #475569;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+        transition: color 0.2s;
+      }
+      .btn-cancelar-wompi:hover { color: #e2e8f0; }
+      /* ─────────────────────────────────────────────────────────────────── */
     </style>
   </head>
   <body>
@@ -287,14 +336,35 @@
           <input type="email" id="correo" required placeholder="Ej: juan@gmail.com">
         </div>
         
-        <button type="submit" class="btn-enviar">RESERVAR AHORA</button>
+        <button type="submit" class="btn-enviar" id="btnReservar">RESERVAR AHORA</button>
       </form>
+
+      <!-- ── PANEL WOMPI (oculto hasta que el registro es exitoso) ────── -->
+      <div class="panel-wompi" id="panelWompi">
+        <p id="txtWompiInfo">
+          ✅ ¡Número reservado!<br>
+          Completa el pago para confirmar tu participación.
+        </p>
+        <button type="button" class="btn-wompi" id="btnIrWompi" onclick="abrirPagoWompi()">
+          💳 &nbsp;PAGAR CON WOMPI
+        </button>
+        <button type="button" class="btn-cancelar-wompi" onclick="resetearFormulario()">
+          Cancelar y elegir otro número
+        </button>
+      </div>
+      <!-- ────────────────────────────────────────────────────────────── -->
     </div>
 
     <script>
-      const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzdfV4SiVyiJo_jcq-O2qaaos4XQq_mAPnf6BPU6h8ITSXE3fQl83FQxXZ7SNl1YRiY/exec"; 
+      const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzdfV4SiVyiJo_jcq-O2qaaos4XQq_mAPnf6BPU6h8ITSXE3fQl83FQxXZ7SNl1YRiY/exec";
       let numeroElegidoActualmente = null;
       let casillasPorNumero = [];
+
+      // ── Wompi ────────────────────────────────────────────────────────────
+      let wompiConfig = { link: '', publicKey: '', precioCentavos: 0 };
+      let datosRegistro = null;   // { numero, telefono, centavos } tras registro exitoso
+      let wompiWidgetCargado = false;
+      // ────────────────────────────────────────────────────────────────────
 
       // ================================================================
       // 1. PINTAR EL ESQUELETO DEL TABLERO DE INMEDIATO (0 ms de espera)
@@ -316,6 +386,8 @@
       window.addEventListener("DOMContentLoaded", () => {
         pintarEsqueleto();
         actualizarTableroReal();
+        cargarConfigWompi();      // Obtiene link/publicKey/precio de B32-B34
+        verificarRetornoWompi();  // Si Wompi redirigió de vuelta, procesa el pago
       });
 
       // ================================================================
@@ -411,12 +483,26 @@
           .then(respuesta => {
             loader.style.display = "none";
             if (respuesta.status === "ok") {
-              alert("¡Registro Exitoso!\nTu número ha sido reservado correctamente.");
-              document.getElementById("numSeleccionado").value = "";
-              document.getElementById("numVisual").value = "";
-              document.getElementById("nombre").value = "";
-              document.getElementById("telefono").value = "";
-              document.getElementById("correo").value = "";
+              // Guardar datos del registro para el pago Wompi
+              datosRegistro = {
+                numero:    numeroElegidoActualmente,
+                telefono:  telefono,
+                centavos:  wompiConfig.precioCentavos
+              };
+              // Mostrar panel de pago y bloquear el formulario visualmente
+              const numFmt = String(numeroElegidoActualmente).padStart(2, "0");
+              document.getElementById("txtWompiInfo").innerHTML =
+                `✅ Número <strong>#${numFmt}</strong> reservado.<br>
+                Completa el pago para confirmar tu participación.`;
+              document.getElementById("panelWompi").style.display = "block";
+              document.getElementById("formularioTicket").style.opacity = "0.35";
+              document.getElementById("formularioTicket").style.pointerEvents = "none";
+              document.getElementById("btnReservar").disabled = true;
+              // Si no hay Wompi configurado, seguir flujo anterior
+              if (!wompiConfig.link && !wompiConfig.publicKey) {
+                alert("¡Registro Exitoso!\nTu número ha sido reservado. Coordina el pago con el organizador.");
+                resetearFormulario();
+              }
             } else if (respuesta.status === "ocupado") {
               alert("Error:\nEl número ya fue tomado por otro usuario.");
             } else {
@@ -431,6 +517,212 @@
             loader.style.display = "none";
           });
       }
+
+      // ====================================================================
+      // WOMPI — PASARELA DE PAGOS
+      // ====================================================================
+
+      /**
+       * Obtiene del Apps Script el link, llave pública y precio en centavos.
+       * Se llama al cargar la página; si Wompi no está configurado, los campos
+       * quedan vacíos y el sistema funciona solo con el flujo de registro.
+       */
+      function cargarConfigWompi() {
+        fetch(`${URL_WEB_APP}?accion=config_wompi_rifa`)
+          .then(r => r.json())
+          .then(cfg => {
+            if (cfg && cfg.ok) {
+              wompiConfig = {
+                link:           cfg.wompiLink     || "",
+                publicKey:      cfg.wompiPublicKey || "",
+                precioCentavos: cfg.precioCentavos || 0
+              };
+            }
+          })
+          .catch(() => console.warn("No se pudo cargar configuración Wompi."));
+      }
+
+      /**
+       * Se ejecuta al cargar la página si Wompi redirigió de vuelta con
+       * ?rifas_pago=1. Lee los parámetros de la URL, llama al Apps Script
+       * para confirmar el pago y muestra el resultado al usuario.
+       */
+      function verificarRetornoWompi() {
+        const params = new URLSearchParams(location.search);
+        if (params.get("rifas_pago") !== "1") return;
+
+        const numero   = parseInt(params.get("numero"), 10)  || 0;
+        const telefono = params.get("telefono") || "";
+        const centavos = parseInt(params.get("centavos"), 10) || 0;
+        const status   = params.get("status")  || "";
+
+        // Limpiar parámetros de Wompi de la URL sin recargar la página
+        history.replaceState({}, "", location.pathname);
+
+        const loader = document.getElementById("loader");
+
+        if (status === "APPROVED") {
+          loader.style.display = "flex";
+          loader.innerText = "✔ Verificando pago con el servidor...";
+          fetch(`${URL_WEB_APP}?accion=confirmarpago_rifa&numero=${numero}&telefono=${encodeURIComponent(telefono)}&centavos=${centavos}`)
+            .then(r => r.json())
+            .then(resp => {
+              loader.style.display = "none";
+              const numFmt = String(numero).padStart(2, "0");
+              if (resp.ok) {
+                alert(`✅ ¡Pago confirmado!\nEl número #${numFmt} está asegurado. ¡Mucha suerte!`);
+              } else {
+                alert(`⚠️ El pago fue aprobado en Wompi, pero hubo un inconveniente al registrarlo.\nGuarda tu número (#${numFmt}) y contacta al organizador para aclarar.`);
+              }
+              pintarEsqueleto();
+              actualizarTableroReal();
+            })
+            .catch(() => {
+              loader.style.display = "none";
+              alert(`⚠️ No se pudo verificar el pago. Guarda tu número (#${String(numero).padStart(2,"0")}) y contacta al organizador.`);
+            });
+
+        } else if (status === "PENDING") {
+          alert(`⏳ Pago PENDIENTE (PSE u otro medio).\nSe confirmará automáticamente cuando el banco lo procese.\nConserva tu número: #${String(numero).padStart(2,"0")}.`);
+          pintarEsqueleto();
+          actualizarTableroReal();
+
+        } else if (status === "DECLINED" || status === "VOIDED" || status === "ERROR") {
+          alert(`❌ El pago fue rechazado o cancelado.\nTu número quedó reservado por un momento, pero puede liberarse.\nIntenta de nuevo o elige otro número.`);
+          pintarEsqueleto();
+          actualizarTableroReal();
+        }
+      }
+
+      /**
+       * Abre el checkout de Wompi: usa el widget embebido si hay llave pública,
+       * o redirige al link estático si solo hay link configurado.
+       */
+      function abrirPagoWompi() {
+        if (!datosRegistro) {
+          alert("Por favor completa el registro primero.");
+          return;
+        }
+        const { numero, telefono, centavos } = datosRegistro;
+        if (!centavos || centavos <= 0) {
+          alert("El valor del boleto no está configurado correctamente (MENU!B8). Contacta al organizador.");
+          return;
+        }
+
+        const ts         = Date.now();
+        const referencia = `RIFAS_${numero}_${telefono}_${ts}`;
+        const baseUrl    = location.href.split("?")[0];
+        const redirectUrl = `${baseUrl}?rifas_pago=1&numero=${numero}&telefono=${encodeURIComponent(telefono)}&centavos=${centavos}`;
+
+        if (wompiConfig.publicKey) {
+          // ── MODO WIDGET (llave pública + firma de integridad) ────────────
+          document.getElementById("loader").style.display = "flex";
+          document.getElementById("loader").innerText = "Preparando pago seguro...";
+          fetch(`${URL_WEB_APP}?accion=wompifirma_rifa&referencia=${encodeURIComponent(referencia)}&centavos=${centavos}`)
+            .then(r => r.json())
+            .then(resp => {
+              document.getElementById("loader").style.display = "none";
+              if (!resp.ok) {
+                alert("Error al preparar el pago: " + (resp.error || "intenta de nuevo."));
+                return;
+              }
+              _abrirWidgetWompi(wompiConfig.publicKey, centavos, referencia, redirectUrl, resp.firma);
+            })
+            .catch(() => {
+              document.getElementById("loader").style.display = "none";
+              // Fallback al link estático si la firma falla
+              _abrirLinkWompiEstatico(referencia, centavos, redirectUrl);
+            });
+
+        } else if (wompiConfig.link) {
+          // ── MODO LINK ESTÁTICO ───────────────────────────────────────────
+          _abrirLinkWompiEstatico(referencia, centavos, redirectUrl);
+
+        } else {
+          alert("La pasarela de pago Wompi no está configurada aún.\nContacta al organizador.");
+        }
+      }
+
+      /** Carga el widget de Wompi y abre el checkout. */
+      function _abrirWidgetWompi(publicKey, centavos, referencia, redirectUrl, firma) {
+        const abrirCheckout = () => {
+          const checkout = new WidgetCheckout({
+            currency:              "COP",
+            amountInCents:         centavos,
+            reference:             referencia,
+            publicKey:             publicKey,
+            redirectUrl:           redirectUrl,
+            "signature:integrity": firma
+          });
+          checkout.open(function(result) {
+            if (!result || !result.transaction) return;
+            const tx = result.transaction;
+            if (tx.status === "APPROVED") {
+              const loader = document.getElementById("loader");
+              loader.style.display = "flex";
+              loader.innerText = "Confirmando pago...";
+              const num = datosRegistro ? datosRegistro.numero   : 0;
+              const tel = datosRegistro ? datosRegistro.telefono : "";
+              const cts = datosRegistro ? datosRegistro.centavos : 0;
+              fetch(`${URL_WEB_APP}?accion=confirmarpago_rifa&numero=${num}&telefono=${encodeURIComponent(tel)}&centavos=${cts}`)
+                .then(r => r.json())
+                .then(() => {
+                  loader.style.display = "none";
+                  alert(`✅ ¡Pago aprobado!\nNúmero #${String(num).padStart(2,"0")} confirmado. ¡Mucha suerte!`);
+                  resetearFormulario();
+                  pintarEsqueleto();
+                  actualizarTableroReal();
+                })
+                .catch(() => {
+                  loader.style.display = "none";
+                  alert("Pago aprobado. Guarda tu número: #" + String(num).padStart(2,"0"));
+                  resetearFormulario();
+                  pintarEsqueleto();
+                  actualizarTableroReal();
+                });
+            } else if (tx.status === "PENDING") {
+              alert("⏳ Pago pendiente. Se confirmará cuando el banco lo procese.");
+            } else {
+              alert("❌ El pago fue rechazado. Puedes intentarlo de nuevo.");
+            }
+          });
+        };
+        if (!wompiWidgetCargado) {
+          const script = document.createElement("script");
+          script.src = "https://checkout.wompi.co/widget.js";
+          script.setAttribute("data-render", "false");
+          script.onload = abrirCheckout;
+          document.head.appendChild(script);
+          wompiWidgetCargado = true;
+        } else {
+          abrirCheckout();
+        }
+      }
+
+      /** Redirige al link estático de Wompi con parámetros en la URL. */
+      function _abrirLinkWompiEstatico(referencia, centavos, redirectUrl) {
+        const url = `${wompiConfig.link}?reference=${encodeURIComponent(referencia)}&amount-in-cents=${centavos}&currency=COP&redirect-url=${encodeURIComponent(redirectUrl)}`;
+        window.location.href = url;
+      }
+
+      /** Reinicia el formulario y oculta el panel de Wompi. */
+      function resetearFormulario() {
+        datosRegistro = null;
+        document.getElementById("panelWompi").style.display   = "none";
+        const form = document.getElementById("formularioTicket");
+        form.style.opacity       = "";
+        form.style.pointerEvents = "";
+        document.getElementById("btnReservar").disabled        = false;
+        document.getElementById("numSeleccionado").value       = "";
+        document.getElementById("numVisual").value             = "";
+        document.getElementById("nombre").value                = "";
+        document.getElementById("telefono").value              = "";
+        document.getElementById("correo").value                = "";
+        document.querySelectorAll(".numero-casilla").forEach(c => c.classList.remove("seleccionado"));
+        numeroElegidoActualmente = null;
+      }
+
+      // ====================================================================
     </script>
   </body>
 </html>
