@@ -361,9 +361,11 @@
       let casillasPorNumero = [];
 
       // ── Wompi ────────────────────────────────────────────────────────────
-      let wompiConfig = { link: '', publicKey: '', precioCentavos: 0 };
+      let wompiConfig = { link: '', publicKey: '', precioCentavos: 0, esGratis: false };
       let datosRegistro = null;   // { numero, telefono, centavos } tras registro exitoso
       let wompiWidgetCargado = false;
+      // ── Cierre de selección (MENU!B31) ───────────────────────────────────
+      let cierreSeleccion = null;  // fecha/hora límite de registro (ISO string)
       // ────────────────────────────────────────────────────────────────────
 
       // ================================================================
@@ -415,6 +417,60 @@
         document.getElementById("txtDescripcion").innerText = menu.restoTexto || "";
         document.getElementById("lblFecha").innerText = menu.fecha || "--/--/----";
         document.getElementById("lblPrecio").innerText = (typeof menu.precio === 'number') ? `$${menu.precio.toLocaleString('es-CO')}` : `$${menu.precio}`;
+        // Cierre de selección (MENU!B31)
+        if (menu.cierreSeleccion) {
+          cierreSeleccion = menu.cierreSeleccion;
+          verificarCierre();
+        }
+      }
+
+      /**
+       * Verifica si la fecha/hora de cierre ya pasó.
+       * Si pasó: muestra mensaje de registro cerrado y bloquea el formulario.
+       * Si no:   muestra cuándo cierra (para que el participante lo sepa).
+       */
+      function verificarCierre() {
+        if (!cierreSeleccion) return;
+        const ahora    = new Date();
+        const fechaCierre = new Date(cierreSeleccion);
+        if (isNaN(fechaCierre.getTime())) return;
+
+        const opciones = { day: '2-digit', month: '2-digit', year: 'numeric',
+                           hour: '2-digit', minute: '2-digit', hour12: true,
+                           timeZone: 'America/Bogota' };
+        const cierreTexto = fechaCierre.toLocaleString('es-CO', opciones);
+
+        if (ahora >= fechaCierre) {
+          // ── REGISTRO CERRADO ────────────────────────────────────────────
+          const panel = document.getElementById("panelFormulario");
+          panel.innerHTML = `
+            <div style="text-align:center; padding:30px 15px;">
+              <div style="font-size:2.5rem; margin-bottom:10px;">⛔</div>
+              <div style="font-size:1.2rem; font-weight:bold; color:#ef4444; margin-bottom:8px;">
+                REGISTRO CERRADO
+              </div>
+              <div style="font-size:0.85rem; color:#94a3b8;">
+                La selección de números cerró el ${cierreTexto}.<br>
+                Comunícate con el organizador si tienes dudas.
+              </div>
+            </div>`;
+          // Bloquear clics en el tablero de números
+          document.querySelectorAll(".numero-casilla.libre").forEach(c => {
+            c.style.cursor = "not-allowed";
+            c.style.opacity = "0.5";
+            const clone = c.cloneNode(true);
+            c.replaceWith(clone); // elimina listeners de click
+          });
+        } else {
+          // ── MUESTRA FECHA DE CIERRE ─────────────────────────────────────
+          const descEl = document.getElementById("txtDescripcion");
+          if (descEl) {
+            const avisoEl = document.createElement("div");
+            avisoEl.style.cssText = "font-size:0.7rem; color:#f3ca52; margin-top:4px; opacity:0.85;";
+            avisoEl.textContent = `⏰ Registro abierto hasta: ${cierreTexto}`;
+            descEl.parentNode.insertBefore(avisoEl, descEl.nextSibling);
+          }
+        }
       }
 
       // Colores personalizados desde MENU!B24:B29.
@@ -483,28 +539,41 @@
           .then(respuesta => {
             loader.style.display = "none";
             if (respuesta.status === "ok") {
-              // Guardar datos del registro para el pago Wompi
-              datosRegistro = {
-                numero:    numeroElegidoActualmente,
-                telefono:  telefono,
-                centavos:  wompiConfig.precioCentavos
-              };
-              // Mostrar panel de pago y bloquear el formulario visualmente
-              const numFmt = String(numeroElegidoActualmente).padStart(2, "0");
-              document.getElementById("txtWompiInfo").innerHTML =
-                `✅ Número <strong>#${numFmt}</strong> reservado.<br>
-                Completa el pago para confirmar tu participación.`;
-              document.getElementById("panelWompi").style.display = "block";
-              document.getElementById("formularioTicket").style.opacity = "0.35";
-              document.getElementById("formularioTicket").style.pointerEvents = "none";
-              document.getElementById("btnReservar").disabled = true;
-              // Si no hay Wompi configurado, seguir flujo anterior
-              if (!wompiConfig.link && !wompiConfig.publicKey) {
-                alert("¡Registro Exitoso!\nTu número ha sido reservado. Coordina el pago con el organizador.");
+              if (respuesta.esGratis) {
+                // ── RIFA GRATIS: no mostrar Wompi ─────────────────────────
+                const numFmt = String(numeroElegidoActualmente).padStart(2, "0");
+                alert(`✅ ¡Número #${numFmt} registrado!\nTu participación ha sido confirmada. ¡Mucha suerte!`);
                 resetearFormulario();
+              } else {
+                // ── RIFA DE PAGO: mostrar panel Wompi ─────────────────────
+                datosRegistro = {
+                  numero:    numeroElegidoActualmente,
+                  telefono:  telefono,
+                  centavos:  wompiConfig.precioCentavos
+                };
+                const numFmt = String(numeroElegidoActualmente).padStart(2, "0");
+                document.getElementById("txtWompiInfo").innerHTML =
+                  `✅ Número <strong>#${numFmt}</strong> reservado.<br>
+                  Completa el pago para confirmar tu participación.`;
+                document.getElementById("panelWompi").style.display = "block";
+                document.getElementById("formularioTicket").style.opacity = "0.35";
+                document.getElementById("formularioTicket").style.pointerEvents = "none";
+                document.getElementById("btnReservar").disabled = true;
+                // Si no hay Wompi configurado, usar flujo sin pasarela
+                if (!wompiConfig.link && !wompiConfig.publicKey) {
+                  alert("¡Registro Exitoso!\nTu número ha sido reservado. Coordina el pago con el organizador.");
+                  resetearFormulario();
+                }
               }
+            } else if (respuesta.status === "cerrado") {
+              // ── REGISTRO CERRADO ────────────────────────────────────────
+              alert("⛔ " + (respuesta.message || "El registro de números ya está cerrado."));
+              resetearFormulario();
+              // Refrescar tablero por si hubo cambio de estado
+              cierreSeleccion = null;
+              actualizarTableroReal();
             } else if (respuesta.status === "ocupado") {
-              alert("Error:\nEl número ya fue tomado por otro usuario.");
+              alert("⚠️ El número ya fue tomado por otro usuario.\nPor favor elige otro.");
             } else {
               alert(respuesta.message || "No fue posible completar la reserva.");
             }
@@ -533,9 +602,10 @@
           .then(cfg => {
             if (cfg && cfg.ok) {
               wompiConfig = {
-                link:           cfg.wompiLink     || "",
-                publicKey:      cfg.wompiPublicKey || "",
-                precioCentavos: cfg.precioCentavos || 0
+                link:           cfg.wompiLink      || "",
+                publicKey:      cfg.wompiPublicKey  || "",
+                precioCentavos: cfg.precioCentavos  || 0,
+                esGratis:       cfg.esGratis        || false
               };
             }
           })
